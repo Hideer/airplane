@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title></title>
+		<link rel="stylesheet" type="text/css" href="css/public.css"/>
+		<!--<script src="js/zyDame.js" type="text/javascript" charset="utf-8"></script>-->
+	</head>
+	<style type="text/css">
+		#box{height: 568px;width: 320px;box-shadow: 0 0 5px ;margin: 60px auto;}
+		#map{height: 568px;width: 320px;position: relative;overflow: hidden;}
+		#map ul{height: 100%;width: 100%;position: absolute;left: 0px;top: -568px;z-index: -1;}
+		#map span{display:inline-block;height:24px;/*background:red;*/background:rgba(0,0,0,.3);font:700 16px/24px "";position: absolute;z-index: 1;}
+		#map span i{font: 700 18px/24px "";}
+	</style>
+	<script type="text/javascript">
+		window.onload=function(){
+			var oMap=document.getElementById("map");
+			var oUl=oMap.getElementsByTagName('ul')[0];
+			var timer=null;
+			var timerdjys=null;//敌机延时器
+			var timerdjjs=null;//敌机产生速度
+			var ogard=document.getElementById("grad");
+			//背景滚动函数
+			function mapMove(){
+				var top=oUl.offsetTop;
+				timer=setInterval(function(){
+					top+=3;
+//					console.log(top);
+					if(top>=0){
+						top=-568;
+						oUl.style.top=top+"px";
+					}
+					oUl.style.top=top+"px";
+				},60);
+			}
+			mapMove();
+			//随机函数（随机敌机类型，位置）
+			function random(min,max){
+				return Math.floor(Math.random()*(max-min+1))+min;
+			}
+//			alert(random(1,5));
+			//我方飞机构造函数
+			function MyPlane(w,h,x,y,src,src2,life){
+				this.w=w;
+				this.h=h;
+				this.x=x;
+				this.y=y;
+				this.src=src;
+				this.src2=src2;
+				this.life=life;
+				this.createmyplane();
+
+			}
+			//创建我方的飞机
+			MyPlane.prototype.createmyplane=function(){
+//				alert(oMap.offsetWidth);
+				var that=this;
+				this.cmyplane=document.createElement('img');
+				this.cmyplane.style.cssText='width:'+this.w+'px;height:'+this.h+'px;position:absolute;left:'+this.x+'px;top:'+this.y+'px;';
+				this.cmyplane.className="my";
+				this.cmyplane.src=this.src;
+				oMap.appendChild(this.cmyplane);
+				//创建完成后进行移动事件！
+				document.onmousemove=function(ev){
+//					console.log(that.cmyplane.style.left);
+//					this.cmyplane.
+					var ev=ev||window.event;
+//					console.log(ev.clientX);
+					var myx=ev.clientX-oMap.offsetLeft-that.cmyplane.offsetWidth/2;
+					var myy=ev.clientY-oMap.offsetTop-that.cmyplane.offsetHeight/2;
+					if(myx<=0){
+						myx=0;
+					}else if(myx>=oMap.offsetWidth-that.cmyplane.offsetWidth){
+						myx=oMap.offsetWidth-that.cmyplane.offsetWidth;
+					}
+					if(myy<=0){
+						myy=0;
+					}else if(myy>=oMap.offsetHeight-that.cmyplane.offsetHeight){
+						myy=oMap.offsetHeight-that.cmyplane.offsetHeight;
+					}
+					that.cmyplane.style.left=myx+"px";
+					that.cmyplane.style.top=myy+"px";
+					return false;//解决默认事件
+				}
+				this.todown();//按下事件方法
+				this.tocEmemy();//敌机方法
+			}
+			MyPlane.prototype.todown=function(){
+				//这里与飞机的移动事件用了两种的方法实现，飞机移动时在MyPlane实例中直接加入对文档的事件；而飞机的鼠标按下事件中在MyPlane实例中创建todown的方法，这个方法下由指向飞机的按下事件，响应后构造子弹实例！
+				this.cmyplane.onmousedown=function(){
+					clearInterval(this.timerpl);//好像加不加没影响但是还是加了
+					var that=this;
+new MyBullet(6,14,(this.offsetLeft+(this.offsetWidth-6)/2),(this.offsetTop-14),'images/bullet.png');
+					this.timerpl=setInterval(function(){
+new MyBullet(6,14,(that.offsetLeft+(that.offsetWidth-6)/2),(that.offsetTop-14),'images/bullet.png');
+					},180);
+				}
+				this.cmyplane.onmouseup=function(){
+					clearInterval(this.timerpl);
+				}
+			}
+			MyPlane.prototype.tocEmemy=function(){//敌机
+				var that=this;
+				timerdjys=setTimeout(function(){//设置延时敌机出现
+					timerdjjs=setInterval(function(){
+						
+						that.randomnum=random(1,100);//随机敌机类型
+//					console.log(that.randomnum);
+						if(that.randomnum<=60){
+												var dj1=new Enemy(34,24,(random(0,(oMap.offsetWidth-34))),-24,'images/smallplane.png','images/smallplaneboom.gif',4,4,100);
+						}else if(that.randomnum>60 && that.randomnum<90){
+												var dj2=new Enemy(46,60,(random(0,(oMap.offsetWidth-46))),-60,'images/midplane.png','images/midplaneboom.gif',2,8,800);
+						}else{
+							var dj3=new Enemy(110,164,(random(0,(oMap.offsetWidth-110))),-164,'images/bigplane.png','images/bigplaneboom.gif',1,20,2000);
+						}
+					},1000);
+				},2000);
+			}
+			
+			//创建子弹类
+			function MyBullet(w,h,x,y,src){
+				this.w=w;
+				this.h=h;
+				this.x=x;
+				this.y=y;
+				this.src=src;
+				this.bullet();
+			}
+			//创建
+			MyBullet.prototype.bullet=function(){
+//				alert(1);
+//				var that=this;
+//				console.log(1);
+				this.cbullet=document.createElement('img');
+				this.cbullet.style.cssText='width:'+this.w+'px;height:'+this.h+'px;position:absolute;left:'+this.x+'px;top:'+this.y+'px;';
+				this.cbullet.src=this.src;
+				oMap.appendChild(this.cbullet);
+				this.tobulletmove();
+			}
+			//子弹运动
+			MyBullet.prototype.tobulletmove=function(){
+				var that=this;
+				var topbu=this.y;
+				this.cbullet.timerbu=setInterval(function(){
+					that.buletCresh();//判断子弹和敌机的碰撞事件
+					topbu-=3;
+					that.cbullet.style.top=topbu+"px";
+					if(that.cbullet.offsetTop+that.cbullet.offsetHeight<=0){//这里先用小值测试
+//						alert(1);
+						clearInterval(that.cbullet.timerbu);//这里的that指向创建的那个子弹
+						
+//						if(that.cbullet!=""){
+							oMap.removeChild(that.cbullet);
+//						}
+					}
+				},20);
+			}
+			MyBullet.prototype.buletCresh=function(){
+				var aenemy=document.getElementsByClassName('enemy');
+//				console.log(aenemy.length);
+//				console.log(this.cbullet.offsetTop);
+//				console.log(aenemy[0].offsetTop);
+				for(var i=0;i<aenemy.length;i++){
+if(this.cbullet.offsetTop<=aenemy[i].offsetTop+aenemy[i].offsetHeight && this.cbullet.offsetLeft>=aenemy[i].offsetLeft && this.cbullet.offsetTop+this.cbullet.offsetHeight>=aenemy[i].offsetTop && this.cbullet.offsetLeft<=aenemy[i].offsetLeft+aenemy[i].offsetWidth){
+	//碰撞到了的条件
+					clearInterval(this.cbullet.timerbu);
+					oMap.removeChild(this.cbullet);
+					var qing=i;
+					aenemy[qing].num--;
+					if(aenemy[qing].num==0){
+						aenemy[qing].src=aenemy[qing].src2;
+						ogard.innerHTML=Number(ogard.innerHTML)+aenemy[qing].grade;
+						aenemy[qing].timerno=setTimeout(function(){
+	//						console.log(i);
+							oMap.removeChild(aenemy[qing]);
+							clearTimeout(aenemy[qing].timerno);
+						},400)
+	//					console.log(aenemy[qing].timerno);
+					}
+					}	
+				}
+//				alert(1);
+			}
+			
+			//创建敌机类
+			function Enemy(w,h,x,y,src,src2,speed,num,grade){//num是敌机的生命数，grade是分数
+				this.w=w;
+				this.h=h;
+				this.x=x;
+				this.y=y;
+				this.src=src;
+				this.src2=src2;
+				this.speed=speed;
+				this.num=num;
+				this.grade=grade;
+				this.createEnemy();
+				this.moveEnemy();
+			}
+			//创建
+			Enemy.prototype.createEnemy=function(){
+				this.cenemy=document.createElement('img');
+				this.cenemy.style.cssText='width:'+this.w+'px;height:'+this.h+'px;position:absolute;left:'+this.x+'px;top:'+this.y+'px;';
+				this.cenemy.className="enemy";
+				this.cenemy.src=this.src;
+				this.cenemy.src2=this.src2;//在创建的个体中加个属性
+				this.cenemy.num=this.num;
+				this.cenemy.grade=this.grade;
+				oMap.appendChild(this.cenemy);
+			}
+			Enemy.prototype.moveEnemy=function(){
+				var that=this;
+				var topdj=this.cenemy.offsetTop;//+this.h;这个不用加
+//				console.log(topdj);
+				this.cenemy.timerdj=setInterval(function(){
+					that.mycrash();
+					topdj+=that.speed;
+					if(topdj>=oMap.offsetHeight){
+						clearInterval(that.cenemy.timerdj);
+						oMap.removeChild(that.cenemy);
+					}
+					that.cenemy.style.top=topdj+"px";
+				},20);
+			}
+			Enemy.prototype.mycrash=function(){
+				var aenemy=document.getElementsByClassName('enemy');
+				var omy=document.getElementsByClassName('my')[0];
+				for(var i=0;i<aenemy.length;i++){//敌我级碰撞检测
+					if(omy.offsetTop>=aenemy[i].offsetTop+aenemy[i].offsetHeight&&
+					omy.offsetLeft+omy.offsetWidth>=aenemy[i].offsetLeft&&
+					omy.offsetTop+omy.offsetHeight<=aenemy[i].offsetTop&&
+					omy.offsetLeft<=aenemy[i].offsetLeft+aenemy[0].offsetWidth){
+						alert(1);
+					}
+				}
+//				console.log(aenemy[0]);
+			}
+			
+			
+			var myplane=new MyPlane(66,80,((oMap.offsetWidth-66)/2),(oMap.offsetHeight-80),'images/myplane.gif','images/myplaneBoom.gif',3);
+		}
+	</script>
+	<body style="overflow: hidden;">
+		<!--
+		我方飞机类
+		敌方飞机类
+		子弹类
+		地图滚动函数
+		-->
+		
+		<div id="box">
+			<div id="map">
+				<ul>
+					<li><img src="images/background.png"/></li>
+					<li><img src="images/background.png"/></li>
+				</ul>
+				<span class="score">分数:<i id="grad">0</i></span>
+				<!--<div id="plane"></div>-->
+			</div>
+		</div>
+	</body>
+</html>
+

@@ -1,0 +1,54 @@
+@charset "utf-8";
+/* CSS Document */
+body,ol,ul,h1,h2,h3,h4,h5,h6,p,th,td,dl,dd,form,fieldset,legend,input,textarea,select,td{margin:0;padding:0;}
+body{font:12px  "宋体"; word-wrap:break-word;}
+a,u,s,del{color:#666;text-decoration:none} 
+fieldset ,a img,.bor0 {border:0;}
+i,em,b{font-style:normal;font-weight:100;} 
+table{border-collapse:collapse;}
+.ind2{text-indent:2em} 
+
+li{list-style:none;}/*去点*/
+a{text-decoration:none;}
+img{border:0;vertical-align:middle}
+/*上面的属性用于图片和文字同行居中！！！依旧会有图片3像素的问题需要加上display：block*/
+
+
+.fl{float:left}
+.fr{float:right}
+.cu{cursor:pointer}
+
+
+
+
+/*垂直对齐属性*/
+.valign:after{content:"";display:inline-block;vertical-align:middle;width:0px;height:100%;}
+/*文本溢出出现省略号*/
+.over{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+/*万能清楚浮动方法*/
+.clear{zoom:1/*只有IE能够识别*/}
+.clear:before{content:"";display:table;}
+.clear:after{ content:""; clear:both; display:block; height:0;overflow:hidden; visibility:hidden;}
+/*清除浮动并且-----解决margin-top向上传递的问题*/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
